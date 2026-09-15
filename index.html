@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0d10">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Timetable</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg: #0b0d10;
+            --surface: #12151a;
+            --surface-2: #181c22;
+            --border: #252a32;
+            --text: #f5f7fa;
+            --muted: #8d95a1;
+            --accent: #8b7cff;
+            --accent-soft: rgba(139, 124, 255, 0.14);
+            --green: #5ee6a8;
+            --yellow: #f6c85f;
+            --red: #ff6b7a;
+            --blue: #61a8ff;
+        }
+
+        html {
+            background: var(--bg);
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                "SF Pro Text", Inter, Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            color: inherit;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 620px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        /* ---------- LOGIN ---------- */
+
+        #loginScreen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-card h1 {
+            margin: 0 0 10px;
+            font-size: 38px;
+            line-height: 1.05;
+            letter-spacing: -1.5px;
+        }
+
+        .login-card p {
+            margin: 0 0 34px;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .login-label {
+            display: block;
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 9px;
+        }
+
+        .roll-input-wrap {
+            display: flex;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            height: 58px;
+        }
+
+        .roll-prefix {
+            padding-left: 17px;
+            color: var(--muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        #rollInput {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--text);
+            padding: 0 15px 0 8px;
+            font-size: 17px;
+            letter-spacing: 1px;
+        }
+
+        #rollInput::placeholder {
+            color: #555d68;
+        }
+
+        .primary-btn {
+            width: 100%;
+            height: 56px;
+            border: 0;
+            border-radius: 16px;
+            margin-top: 14px;
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .primary-btn:active {
+            transform: scale(0.985);
+        }
+
+        .login-error {
+            color: var(--red);
+            font-size: 14px;
+            margin-top: 12px;
+            min-height: 18px;
+        }
+
+        /* ---------- MAIN HEADER ---------- */
+
+        #mainScreen {
+            display: none;
+        }
+
+        .header {
+            padding: 30px 20px 8px;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .greeting {
+            margin: 0;
+            font-size: 27px;
+            line-height: 1.15;
+            letter-spacing: -0.8px;
+        }
+
+        .branch {
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .profile-btn {
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .profile-btn svg {
+            width: 19px;
+            height: 19px;
+            fill: none;
+            stroke: var(--muted);
+            stroke-width: 1.8;
+        }
+
+        /* ---------- DAY SELECTOR ---------- */
+
+        .day-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            margin: 20px 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .day-btn {
+            position: relative;
+            border: 0;
+            background: transparent;
+            padding: 10px 2px 13px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .day-btn .day-date {
+            display: block;
+            margin-top: 5px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #59616c;
+        }
+
+        .day-btn.active {
+            color: var(--text);
+        }
+
+        .day-btn.active .day-date {
+            color: var(--muted);
+        }
+
+        .day-btn.active::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 25%;
+            right: 25%;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 999px;
+        }
+
+        /* ---------- CONTENT ---------- */
+
+        .content {
+            padding: 20px;
+        }
+
+        .date-title {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 13px;
+        }
+
+        .next-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(
+                135deg,
+                rgba(139, 124, 255, 0.19),
+                rgba(139, 124, 255, 0.05)
+            );
+            border: 1px solid rgba(139, 124, 255, 0.32);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 26px;
+        }
+
+        .next-card::after {
+            content: "";
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: rgba(139, 124, 255, 0.08);
+            right: -60px;
+            top: -60px;
+        }
+
+        .next-label {
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            margin-bottom: 10px;
+        }
+
+        .next-date {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .next-subject {
+            font-size: 21px;
+            font-weight: 750;
+            letter-spacing: -0.4px;
+        }
+
+        .next-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 9px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .next-countdown {
+            margin-top: 14px;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: -0.2px;
+        }
+
+        .timeline {
+            position: relative;
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 61px;
+            top: 4px;
+            bottom: 4px;
+            width: 1px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            display: grid;
+            grid-template-columns: 54px 1fr;
+            column-gap: 15px;
+            margin-bottom: 17px;
+        }
+
+        .timeline-time {
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.35;
+            text-align: right;
+            padding-top: 5px;
+        }
+
+        .timeline-time strong {
+            display: block;
+            color: #c5cad1;
+            font-size: 12px;
+        }
+
+        .class-card {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 13px 14px;
+        }
+
+        .class-card.current {
+            border-color: rgba(139, 124, 255, 0.45);
+            background: var(--accent-soft);
+        }
+
+        .class-subject {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .class-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .break-item {
+            position: relative;
+            display: grid;
+            grid-template-columns: 54px 1fr;
+            column-gap: 15px;
+            margin-bottom: 17px;
+        }
+
+        .break-card {
+            padding: 7px 0;
+            color: #707884;
+            font-size: 12px;
+        }
+
+        .break-card strong {
+            color: #969da8;
+            font-weight: 650;
+        }
+
+        /* ---------- SPECIAL STATES ---------- */
+
+        .holiday-card {
+            text-align: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 30px 20px;
+            margin-bottom: 22px;
+        }
+
+        .holiday-icon {
+            font-size: 35px;
+            margin-bottom: 10px;
+        }
+
+        .holiday-title {
+            font-size: 22px;
+            font-weight: 750;
+        }
+
+        .holiday-text {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 7px;
+        }
+
+        .special-banner {
+            background: rgba(97, 168, 255, 0.09);
+            border: 1px solid rgba(97, 168, 255, 0.25);
+            color: #a8ceff;
+            border-radius: 15px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            color: var(--muted);
+            text-align: center;
+            padding: 35px 15px;
+            font-size: 14px;
+        }
+
+        /* ---------- CALENDAR ---------- */
+
+        #calendarScreen {
+            display: none;
+        }
+
+        .calendar-header {
+            padding: 30px 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .calendar-title {
+            font-size: 26px;
+            font-weight: 750;
+            letter-spacing: -0.7px;
+        }
+
+        .calendar-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        .today-btn {
+            border: 0;
+            background: transparent;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+
+        .calendar {
+            padding: 20px;
+        }
+
+        .calendar-weekdays,
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .calendar-weekdays {
+            margin-bottom: 7px;
+        }
+
+        .calendar-weekdays div {
+            text-align: center;
+            color: #656d78;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .calendar-day {
+            position: relative;
+            min-height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c8cdd4;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .calendar-day.other-month {
+            color: #3f4650;
+        }
+
+        .calendar-day.today {
+            color: white;
+            font-weight: 750;
+        }
+
+        .calendar-day.today::before {
+            content: "";
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--accent);
+        }
+
+        .calendar-day.selected {
+            background: var(--surface-2);
+        }
+
+        .event-dots {
+            position: absolute;
+            bottom: 5px;
+            display: flex;
+            gap: 3px;
+        }
+
+        .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+        }
+
+        .dot.holiday {
+            background: var(--red);
+        }
+
+        .dot.exam {
+            background: var(--yellow);
+        }
+
+        .dot.special {
+            background: var(--blue);
+        }
+
+        .dot.academic {
+            background: var(--green);
+        }
+
+        .selected-event {
+            margin: 4px 20px 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .selected-event-date {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .event-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 14px;
+            padding: 5px 0;
+        }
+
+        .event-row .dot {
+            width: 7px;
+            height: 7px;
+            flex-shrink: 0;
+        }
+
+        .calendar-legend {
+            padding: 22px 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 13px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-item .dot {
+            width: 6px;
+            height: 6px;
+        }
+
+        /* ---------- BOTTOM NAV ---------- */
+
+        .bottom-nav {
+            position: fixed;
+            left: 50%;
+            bottom: 13px;
+            transform: translateX(-50%);
+            width: min(390px, calc(100% - 28px));
+            height: 62px;
+            background: rgba(18, 21, 26, 0.94);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 5px;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            z-index: 50;
+        }
+
+        .nav-btn {
+            border: 0;
+            border-radius: 17px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 650;
+        }
+
+        .nav-btn.active {
+            background: var(--surface-2);
+            color: var(--text);
+        }
+
+        .nav-icon {
+            display: block;
+            font-size: 19px;
+            margin-bottom: 2px;
+        }
+
+        /* ---------- PROFILE MODAL ---------- */
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .profile-modal {
+            width: min(620px, 100%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom: 0;
+            border-radius: 25px 25px 0 0;
+            padding: 22px 20px 28px;
+        }
+
+        .modal-handle {
+            width: 36px;
+            height: 4px;
+            background: #363c45;
+            border-radius: 999px;
+            margin: 0 auto 22px;
+        }
+
+        .profile-name {
+            font-size: 23px;
+            font-weight: 750;
+        }
+
+        .profile-info {
+            color: var(--muted);
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .profile-details {
+            margin-top: 18px;
+            padding: 14px;
+            background: var(--surface-2);
+            border-radius: 15px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .secondary-btn {
+            width: 100%;
+            height: 48px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: transparent;
+            color: var(--text);
+            margin-top: 14px;
+            cursor: pointer;
+            font-weight: 650;
+        }
+
+        /* ---------- FEEDBACK ---------- */
+
+        .feedback {
+            text-align: center;
+            padding: 28px 20px 8px;
+        }
+
+        .feedback p {
+            margin: 0 0 8px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .feedback button {
+            border: 0;
+            background: transparent;
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 650;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+
+        @media (min-width: 700px) {
+            .app {
+                padding-bottom: 105px;
+            }
+
+            .header {
+                padding-top: 42px;
+            }
+
+            .bottom-nav {
+                bottom: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- LOGIN -->
+    <section id="loginScreen">
+        <div class="login-card">
+            <h1>Your timetable,<br>simplified.</h1>
+            <p>Enter your UG1 roll number to get your personalised schedule.</p>
+
+            <label class="login-label" for="rollInput">Roll Number</label>
+
+            <div class="roll-input-wrap">
+                <span class="roll-prefix">S2026</span>
+                <input
+                    id="rollInput"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="7"
+                    placeholder="0030398"
+                    autocomplete="off"
+                >
+            </div>
+
+            <button class="primary-btn" onclick="login()">
+                View Timetable
+            </button>
+
+            <div id="loginError" class="login-error"></div>
+        </div>
+    </section>
+
+
+    <!-- MAIN -->
+    <section id="mainScreen">
+
+        <header class="header">
+            <div class="header-row">
+                <div>
+                    <h1 class="greeting" id="greeting">Good morning 👋</h1>
+                    <div class="branch" id="branchText">AI & Data Science · UG1</div>
+                </div>
+
+                <button class="profile-btn" onclick="openProfile()" aria-label="Profile">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="3.2"></circle>
+                        <path d="M5.5 20c.7-3.4 2.7-5.3 6.5-5.3s5.8 1.9 6.5 5.3"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="day-selector" id="daySelector"></div>
+
+        <main id="todayScreen" class="content"></main>
+
+        <main id="calendarScreen">
+            <div class="calendar-header">
+                <div class="calendar-title" id="calendarTitle"></div>
+
+                <div class="calendar-controls">
+                    <button class="today-btn" onclick="goCalendarToday()">Today</button>
+                    <button class="icon-btn" onclick="changeMonth(-1)">‹</button>
+                    <button class="icon-btn" onclick="changeMonth(1)">›</button>
+                </div>
+            </div>
+
+            <div class="calendar">
+                <div class="calendar-weekdays">
+                    <div>MON</div>
+                    <div>TUE</div>
+                    <div>WED</div>
+                    <div>THU</div>
+                    <div>FRI</div>
+                    <div>SAT</div>
+                    <div>SUN</div>
+                </div>
+
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <div class="selected-event" id="selectedEvent"></div>
+
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <span class="dot holiday"></span> Holiday
+                </div>
+                <div class="legend-item">
+                    <span class="dot exam"></span> Exam
+                </div>
+                <div class="legend-item">
+                    <span class="dot special"></span> Special Timetable
+                </div>
+                <div class="legend-item">
+                    <span class="dot academic"></span> Academic Event
+                </div>
+            </div>
+
+            <div class="feedback">
+                <p>Found something wrong or have an idea?</p>
+                <button onclick="sendFeedback()">Send feedback →</button>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button id="todayNav" class="nav-btn active" onclick="showToday()">
+                <span class="nav-icon">⌂</span>
+                Today
+            </button>
+
+            <button id="calendarNav" class="nav-btn" onclick="showCalendar()">
+                <span class="nav-icon">□</span>
+                Calendar
+            </button>
+        </nav>
+    </section>
+</div>
+
+
+<!-- PROFILE MODAL -->
+<div class="modal-backdrop" id="profileModal" onclick="closeProfile(event)">
+    <div class="profile-modal" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+
+        <div class="profile-name" id="profileName"></div>
+        <div class="profile-info" id="profileBranch"></div>
+
+        <div class="profile-details" id="profileDetails"></div>
+
+        <button class="secondary-btn" onclick="changeRollNumber()">
+            Change Roll Number
+        </button>
+    </div>
+</div>
+
+
+<script>
+    /*
+     * BACKEND
+     * Replace this with the deployed Cloudflare Worker URL.
+     */
+    const API_URL = "https://iiit-timetable-api.nagapranav-k26.workers.dev";
+
+
+    /*
+     * UG1 TIMETABLE
+     * Each weekday contains the published time slots.
+     * The backend will tell us which sections belong to the student.
+     */
+    /*
+     * UG1 TIMETABLE DATA
+     * Source: Time table M2026.pdf, UG1 table.
+     * CP/DLD/OCW and DSMA are selected from the student's backend sections.
+     * EE/EDL are not assigned to students by the supplied section lists,
+     * so they are deliberately not fabricated into a student's schedule.
+     * FHVE appears for UG1 on Saturday in the master timetable.
+     */
+    const SECTION_TIMETABLE = {
+        "CP1": {
+                "Monday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "G08"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "16:30",
+                                "17:30",
+                                "G06"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "Lab 103"
+                        ],
+                        [
+                                "09:45",
+                                "10:45",
+                                "Lab 103"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G09"
+                        ]
+                ]
+        },
+        "CP2": {
+                "Tuesday": [
+                        [
+                                "15:15",
+                                "16:15",
+                                "G09"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G08"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "Lab 103"
+                        ],
+                        [
+                                "12:00",
+                                "13:00",
+                                "Lab 103"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "12:00",
+                                "13:00",
+                                "G09"
+                        ]
+                ]
+        },
+        "CP3": {
+                "Monday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "Lab 103"
+                        ],
+                        [
+                                "12:00",
+                                "13:00",
+                                "Lab 103"
+                        ],
+                        [
+                                "15:15",
+                                "16:15",
+                                "G08"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G07"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "12:00",
+                                "13:00",
+                                "G06"
+                        ]
+                ]
+        },
+        "CP4": {
+                "Tuesday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "Lab 103"
+                        ],
+                        [
+                                "09:45",
+                                "10:45",
+                                "Lab 103"
+                        ],
+                        [
+                                "15:15",
+                                "16:15",
+                                "B03"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "G08"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "G09"
+                        ]
+                ]
+        },
+        "DLD1": {
+                "Monday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G09"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "Lab 114/102"
+                        ],
+                        [
+                                "09:45",
+                                "10:45",
+                                "Lab 114/102"
+                        ],
+                        [
+                                "14:15",
+                                "15:15",
+                                "B03"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G09"
+                        ]
+                ]
+        },
+        "DLD2": {
+                "Monday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G08"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G08"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "15:15",
+                                "16:15",
+                                "G08"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "Lab 114/102"
+                        ],
+                        [
+                                "15:15",
+                                "16:15",
+                                "Lab 114/102"
+                        ]
+                ]
+        },
+        "DLD3": {
+                "Tuesday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "Lab 114/102"
+                        ],
+                        [
+                                "12:00",
+                                "13:00",
+                                "Lab 114/102"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G07"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G07"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G08"
+                        ]
+                ]
+        },
+        "DLD4": {
+                "Tuesday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G09"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "Lab 114/102"
+                        ],
+                        [
+                                "09:45",
+                                "10:45",
+                                "Lab 114/102"
+                        ],
+                        [
+                                "11:00",
+                                "12:00",
+                                "G04"
+                        ],
+                        [
+                                "14:15",
+                                "15:15",
+                                "G09"
+                        ]
+                ]
+        },
+        "OCW1": {
+                "Monday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "Lab 103"
+                        ],
+                        [
+                                "09:45",
+                                "10:45",
+                                "Lab 103"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G09"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "G08"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "G09"
+                        ]
+                ]
+        },
+        "OCW2": {
+                "Monday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "Lab 103"
+                        ],
+                        [
+                                "15:15",
+                                "16:15",
+                                "Lab 103"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G09"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "B05"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "11:00",
+                                "12:00",
+                                "G09"
+                        ]
+                ]
+        },
+        "OCW3": {
+                "Monday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "G07"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "Lab 103"
+                        ],
+                        [
+                                "15:15",
+                                "16:15",
+                                "Lab 103"
+                        ],
+                        [
+                                "16:30",
+                                "17:30",
+                                "G07"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "15:15",
+                                "16:15",
+                                "G07"
+                        ]
+                ]
+        },
+        "OCW4": {
+                "Monday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "G08"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "12:00",
+                                "13:00",
+                                "G08"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "08:45",
+                                "09:45",
+                                "Lab 103"
+                        ],
+                        [
+                                "09:45",
+                                "10:45",
+                                "Lab 103"
+                        ],
+                        [
+                                "12:00",
+                                "13:00",
+                                "G08"
+                        ]
+                ]
+        },
+        "DSMA1": {
+                "Tuesday": [
+                        [
+                                "15:15",
+                                "16:15",
+                                "G08"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "12:00",
+                                "13:00",
+                                "G09"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "12:00",
+                                "13:00",
+                                "G07"
+                        ]
+                ]
+        },
+        "DSMA2": {
+                "Monday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G08"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "14:15",
+                                "15:15",
+                                "G09"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "15:15",
+                                "16:15",
+                                "G07"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G07"
+                        ]
+                ]
+        },
+        "DSMA3": {
+                "Monday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G07"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G08"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "12:00",
+                                "13:00",
+                                "G07"
+                        ]
+                ]
+        },
+        "DSMA4": {
+                "Monday": [
+                        [
+                                "12:00",
+                                "13:00",
+                                "G07"
+                        ]
+                ],
+                "Tuesday": [
+                        [
+                                "16:30",
+                                "17:30",
+                                "G09"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "15:15",
+                                "16:15",
+                                "G09"
+                        ]
+                ]
+        },
+        "DSMA5": {
+                "Monday": [
+                        [
+                                "16:30",
+                                "17:30",
+                                "G04"
+                        ]
+                ],
+                "Wednesday": [
+                        [
+                                "12:00",
+                                "13:00",
+                                "G09"
+                        ]
+                ],
+                "Thursday": [
+                        [
+                                "15:15",
+                                "16:15",
+                                "G09"
+                        ]
+                ],
+                "Friday": [
+                        [
+                                "09:45",
+                                "10:45",
+                                "G08"
+                        ]
+                ]
+        },
+        "EE1": {
+                "Friday": [
+                        [
+                                "16:30",
+                                "17:30",
+                                "G06"
+                        ],
+                        [
+                                "17:30",
+                                "18:30",
+                                "G06"
+                        ]
+                ]
+        },
+        "EE2": {
+                "Wednesday": [
+                        [
+                                "16:30",
+                                "17:30",
+                                "G08"
+                        ],
+                        [
+                                "17:30",
+                                "18:30",
+                                "G08"
+                        ]
+                ]
+        },
+        "EDL1": {
+                "Thursday": [
+                        [
+                                "16:30",
+                                "17:30",
+                                "G08"
+                        ],
+                        [
+                                "17:30",
+                                "18:30",
+                                "G08"
+                        ]
+                ]
+        },
+        "EDL2": {
+                "Saturday": [
+                        [
+                                "16:30",
+                                "17:30",
+                                "G04"
+                        ],
+                        [
+                                "17:30",
+                                "18:30",
+                                "G04"
+                        ]
+                ]
+        },
+        "FHVE": {}
+};
+
+    const COURSE_NAMES = {
+        "CP": "Computer Programming",
+        "DLD": "Digital Logic Design",
+        "OCW": "Overview of Computer Workshop",
+        "DSMA": "Discrete Structures and Matrix Algebra",
+        "EE": "Essential English",
+        "EDL": "Ethics in Every Day Life",
+        "FHVE": "Foundations in Human Values and Ethics"
+};
+
+    let timetable = {};
+
+    function buildStudentTimetable() {
+        const out = {
+            Monday: [], Tuesday: [], Wednesday: [],
+            Thursday: [], Friday: [], Saturday: []
+        };
+
+        const addSection = (code, section) => {
+            if (!section) return;
+            const rows = SECTION_TIMETABLE[code + section];
+            if (!rows) return;
+            Object.entries(rows).forEach(([day, items]) => {
+                items.forEach(([start, end, room]) => {
+                    const prefix = code;
+                    out[day].push({
+                        start, end, room,
+                        subject: COURSE_NAMES[prefix],
+                        source: code + section
+                    });
+                });
+            });
+        };
+
+        const sectionNumber = (value) => {
+            if (value == null) return NaN;
+            const match = String(value).match(/(?:Sec)?\s*(\d+)/i);
+            return match ? Number(match[1]) : NaN;
+        };
+
+        const cp = sectionNumber(user?.cp);
+        const dsma = sectionNumber(user?.dsma);
+
+        if (cp >= 1 && cp <= 4) {
+            addSection("CP", cp);
+            addSection("DLD", cp);
+            addSection("OCW", cp);
+        }
+        if (dsma >= 1 && dsma <= 5) {
+            addSection("DSMA", dsma);
+        }
+
+        /* FHVE Saturday timings are not confirmed yet. */
+
+        Object.keys(out).forEach(day => {
+            out[day].sort((a,b) => parseTime(a.start) - parseTime(b.start));
+
+            const merged = [];
+            out[day].forEach(item => {
+                const prev = merged[merged.length - 1];
+                if (
+                    prev &&
+                    prev.end === item.start &&
+                    prev.subject === item.subject &&
+                    prev.room === item.room
+                ) {
+                    prev.end = item.end;
+                } else {
+                    merged.push({ ...item });
+                }
+            });
+            out[day] = merged;
+        });
+        return out;
+    }
+
+    function addBreaks(entries) {
+        const result = [];
+        const breaks = [
+            ["10:45","11:00","Break"],
+            ["13:00","14:15","Lunch"],
+            ["16:15","16:30","Break"]
+        ];
+        entries.forEach(item => {
+            const start = parseTime(item.start);
+            breaks.forEach(([bs,be,label]) => {
+                if (parseTime(bs) === start) {
+                    result.push({start:bs,end:be,break:label});
+                }
+            });
+            result.push(item);
+        });
+        return result;
+    }
+
+    /*
+     * CALENDAR DATA
+     */
+    const events = {
+        "2026-09-04": [{ type: "holiday", text: "Janmashtami · No classes" }],
+        "2026-09-07": [{ type: "academic", text: "Start of Class Work" }],
+        "2026-09-14": [{ type: "holiday", text: "Ganesh Chaturthi · No classes" }],
+        "2026-10-19": [{ type: "exam", text: "Mid Exam" }],
+        "2026-10-20": [{ type: "exam", text: "Mid Exam" }],
+        "2026-10-21": [{ type: "exam", text: "Mid Exam" }],
+        "2026-10-22": [{ type: "exam", text: "Mid Exam" }],
+        "2026-10-23": [{ type: "exam", text: "Mid Exam" }],
+        "2026-10-24": [{ type: "exam", text: "Mid Exam" }],
+        "2026-09-25": [{ type: "academic", text: "Performance Analysis-1" }],
+        "2026-10-01": [{ type: "special", text: "Friday timetable" }],
+        "2026-10-02": [{ type: "holiday", text: "Gandhi Jayanthi · No classes" }],
+        "2026-10-08": [{ type: "special", text: "Friday timetable" }],
+        "2026-10-09": [{ type: "special", text: "Thursday timetable" }],
+        "2026-10-20": [{ type: "holiday", text: "Dussehra · No classes" }],
+        "2026-11-08": [{ type: "holiday", text: "Diwali · No classes" }],
+        "2026-11-13": [{ type: "academic", text: "Performance Analysis-2" }],
+        "2026-12-08": [{ type: "special", text: "Thursday timetable" }],
+        "2026-12-09": [{ type: "exam", text: "END EXAM" }],
+        "2026-12-10": [{ type: "exam", text: "END EXAM" }],
+        "2026-12-11": [{ type: "exam", text: "END EXAM" }],
+        "2026-12-12": [{ type: "exam", text: "END EXAM" }],
+        "2026-12-13": [{ type: "exam", text: "END EXAM" }],
+        "2026-12-14": [{ type: "exam", text: "END EXAM" }],
+        "2026-12-15": [{ type: "exam", text: "END EXAM" }],
+        "2026-12-16": [{ type: "exam", text: "Lab Exam" }],
+        "2026-12-17": [{ type: "exam", text: "Lab Exam" }],
+        "2026-12-18": [{ type: "exam", text: "Lab Exam" }],
+        "2026-12-19": [{ type: "academic", text: "Paper Distribution" }],
+        "2026-12-21": [{ type: "academic", text: "Vacation for Student and Faculty" }],
+        "2026-12-22": [{ type: "academic", text: "Vacation for Student and Faculty" }]
+    };
+
+
+    /*
+     * USER DATA
+     * The actual student lookup is performed by Cloudflare.
+     */
+    let user = null;
+    let selectedDay = null;
+    let calendarDate = new Date();
+    let selectedCalendarDate = null;
+
+
+    const dayNames = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+    ];
+
+    const teachingDays = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+    ];
+
+
+    function pad(number) {
+        return String(number).padStart(2, "0");
+    }
+
+
+    function dateKey(date) {
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+
+    function parseTime(time) {
+        const [hours, minutes] = time.split(":").map(Number);
+        return hours * 60 + minutes;
+    }
+
+
+    function durationText(start, end) {
+        const minutes = parseTime(end) - parseTime(start);
+
+        if (minutes < 60) {
+            return `${minutes} min`;
+        }
+
+        const hours = Math.floor(minutes / 60);
+        const remaining = minutes % 60;
+
+        if (remaining === 0) {
+            return `${hours} hr${hours > 1 ? "s" : ""}`;
+        }
+
+        return `${hours} hr ${remaining} min`;
+    }
+
+
+    function formatDate(date) {
+        return date.toLocaleDateString("en-IN", {
+            weekday: "long",
+            day: "numeric",
+            month: "short"
+        });
+    }
+
+
+    function greetingText() {
+        const hour = new Date().getHours();
+
+        if (hour < 12) return "Good morning";
+        if (hour < 17) return "Good afternoon";
+        return "Good evening";
+    }
+
+
+    function getEffectiveTimetableDay(date) {
+        const key = dateKey(date);
+        const special = events[key]?.find(event => event.type === "special");
+
+        if (special) {
+            if (special.text.toLowerCase().includes("friday")) return "Friday";
+            if (special.text.toLowerCase().includes("thursday")) return "Thursday";
+        }
+
+        if (date.getDay() === 0) {
+            return "Monday";
+        }
+
+        return dayNames[date.getDay()];
+    }
+
+
+    function isHoliday(date) {
+        return events[dateKey(date)]?.some(event => event.type === "holiday") || false;
+    }
+
+
+    function getEvents(date) {
+        return events[dateKey(date)] || [];
+    }
+
+
+    function findNextClass(fromDate = new Date()) {
+        const search = new Date(fromDate);
+        search.setSeconds(0, 0);
+
+        for (let offset = 0; offset < 31; offset++) {
+            const date = new Date(search);
+            date.setDate(search.getDate() + offset);
+
+            if (isHoliday(date)) continue;
+
+            let dayName = getEffectiveTimetableDay(date);
+
+            if (!timetable[dayName]) continue;
+
+            const classes = timetable[dayName].filter(item => !item.break);
+
+            for (const item of classes) {
+                const classStart = parseTime(item.start);
+
+                if (offset === 0) {
+                    const nowMinutes = search.getHours() * 60 + search.getMinutes();
+
+                    if (classStart <= nowMinutes) continue;
+                }
+
+                return {
+                    date,
+                    dayName,
+                    item
+                };
+            }
+        }
+
+        return null;
+    }
+
+
+    function getSelectedDateForDay(day) {
+        const now = new Date();
+
+        if (now.getDay() === 0) {
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + 1);
+
+            if (day === "Monday") return monday;
+        }
+
+        const currentDayIndex = now.getDay();
+        const targetIndex = teachingDays.indexOf(day) + 1;
+
+        const result = new Date(now);
+        let diff = targetIndex - currentDayIndex;
+
+        if (currentDayIndex === 0) {
+            diff = targetIndex;
+        }
+
+        result.setDate(now.getDate() + diff);
+
+        return result;
+    }
+
+
+    function buildDaySelector() {
+        const container = document.getElementById("daySelector");
+        container.innerHTML = "";
+
+        const now = new Date();
+
+        let defaultDay;
+
+        if (now.getDay() === 0) {
+            defaultDay = "Monday";
+        } else {
+            defaultDay = dayNames[now.getDay()];
+        }
+
+        if (!selectedDay) {
+            selectedDay = defaultDay;
+        }
+
+        teachingDays.forEach(day => {
+            const date = getSelectedDateForDay(day);
+
+            const button = document.createElement("button");
+            button.className = "day-btn" + (selectedDay === day ? " active" : "");
+
+            button.innerHTML = `
+                ${day.slice(0, 3).toUpperCase()}
+                <span class="day-date">${date.getDate()}</span>
+            `;
+
+            button.onclick = () => {
+                selectedDay = day;
+                buildDaySelector();
+                renderSelectedDay();
+            };
+
+            container.appendChild(button);
+        });
+    }
+
+
+    function renderNextClass(date) {
+        const next = findNextClass(new Date());
+
+        if (!next) return "";
+
+        const sameDay =
+            dateKey(next.date) === dateKey(date);
+
+        if (!sameDay && dateKey(date) !== dateKey(new Date())) {
+            return "";
+        }
+
+        const now = new Date();
+        const target = new Date(next.date);
+        const [h, m] = next.item.start.split(":").map(Number);
+        target.setHours(h, m, 0, 0);
+
+        const diff = target - now;
+
+        let countdown = "";
+
+        if (diff > 0) {
+            const minutes = Math.floor(diff / 60000);
+
+            if (minutes < 60) {
+                countdown = `Starts in ${minutes} min`;
+            } else {
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                countdown = `Starts in ${hours} hr${hours > 1 ? "s" : ""}${mins ? ` ${mins} min` : ""}`;
+            }
+        }
+
+        return `
+            <div class="next-card">
+                <div class="next-label">NEXT CLASS</div>
+                <div class="next-date">
+                    ${next.date.toLocaleDateString("en-IN", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short"
+                    })} · ${next.item.start}–${next.item.end}
+                </div>
+                <div class="next-subject">${next.item.subject}</div>
+                <div class="next-meta">
+                    <span>📍 ${next.item.room}</span>
+                    <span>·</span>
+                    <span>${durationText(next.item.start, next.item.end)}</span>
+                </div>
+                ${countdown ? `<div class="next-countdown">${countdown}</div>` : ""}
+            </div>
+        `;
+    }
+
+
+    function renderTimeline(dayName, date) {
+        const entries = addBreaks(timetable[dayName] || []);
+
+        if (!entries.length) {
+            return dayName === "Saturday"
+                ? `<div class="empty-state">Saturday timings · To be updated.</div>`
+                : `<div class="empty-state">No timetable available.</div>`;
+        }
+
+        const now = new Date();
+        const todayKey = dateKey(now);
+        const selectedKey = dateKey(date);
+
+        return `
+            <div class="timeline">
+                ${entries.map(item => {
+
+                    if (item.break) {
+                        return `
+                            <div class="break-item">
+                                <div class="timeline-time">
+                                    <strong>${item.start}</strong>
+                                    ${item.end}
+                                </div>
+                                <div class="break-card">
+                                    ☕ <strong>${item.break}</strong> ·
+                                    ${durationText(item.start, item.end)}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    let current = false;
+
+                    if (todayKey === selectedKey) {
+                        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                        current =
+                            currentMinutes >= parseTime(item.start) &&
+                            currentMinutes < parseTime(item.end);
+                    }
+
+                    return `
+                        <div class="timeline-item">
+                            <div class="timeline-time">
+                                <strong>${item.start}</strong>
+                                ${item.end}
+                            </div>
+
+                            <div class="class-card ${current ? "current" : ""}">
+                                <div class="class-subject">${item.subject}</div>
+                                <div class="class-meta">
+                                    <span>📍 ${item.room}</span>
+                                    <span>·</span>
+                                    <span>${durationText(item.start, item.end)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+        `;
+    }
+
+
+    function renderSelectedDay() {
+        const content = document.getElementById("todayScreen");
+
+        const date = getSelectedDateForDay(selectedDay);
+        const key = dateKey(date);
+        const holiday = isHoliday(date);
+        const dayEvents = getEvents(date);
+
+        const special = dayEvents.find(event => event.type === "special");
+
+        let html = `
+            <div class="date-title">
+                ${formatDate(date)}
+            </div>
+        `;
+
+        if (special) {
+            html += `
+                <div class="special-banner">
+                    ↻ <strong>${special.text}</strong><br>
+                    Today's classes follow the ${special.text.replace(" timetable", "")} timetable.
+                </div>
+            `;
+        }
+
+        if (holiday) {
+            const holidayEvent = dayEvents.find(event => event.type === "holiday");
+            const next = findNextClass(new Date(date.getTime() + 24 * 60 * 60 * 1000));
+
+            html += `
+                <div class="holiday-card">
+                    <div class="holiday-icon">🎉</div>
+                    <div class="holiday-title">
+                        ${holidayEvent.text.replace(" · No classes", "")}
+                    </div>
+                    <div class="holiday-text">No classes today</div>
+                </div>
+            `;
+
+            if (next) {
+                html += `
+                    <div class="next-card">
+                        <div class="next-label">NEXT CLASS</div>
+                        <div class="next-date">
+                            ${next.date.toLocaleDateString("en-IN", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short"
+                            })} · ${next.item.start}–${next.item.end}
+                        </div>
+                        <div class="next-subject">${next.item.subject}</div>
+                        <div class="next-meta">
+                            <span>📍 ${next.item.room}</span>
+                            <span>·</span>
+                            <span>${durationText(next.item.start, next.item.end)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            if (dateKey(date) === dateKey(new Date())) {
+                html += renderNextClass(date);
+            }
+
+            const effectiveDay = getEffectiveTimetableDay(date);
+
+            html += `
+                <div class="section-heading">
+                    <h2>${selectedDay.toUpperCase()}'S SCHEDULE</h2>
+                </div>
+            `;
+
+            html += renderTimeline(effectiveDay, date);
+        }
+
+        content.innerHTML = html;
+    }
+
+
+    function showToday() {
+        document.getElementById("todayScreen").style.display = "block";
+        document.getElementById("calendarScreen").style.display = "none";
+
+        document.getElementById("todayNav").classList.add("active");
+        document.getElementById("calendarNav").classList.remove("active");
+
+        buildDaySelector();
+        renderSelectedDay();
+    }
+
+
+    function showCalendar() {
+        document.getElementById("todayScreen").style.display = "none";
+        document.getElementById("calendarScreen").style.display = "block";
+
+        document.getElementById("todayNav").classList.remove("active");
+        document.getElementById("calendarNav").classList.add("active");
+
+        renderCalendar();
+    }
+
+
+    function renderCalendar() {
+        const year = calendarDate.getFullYear();
+        const month = calendarDate.getMonth();
+
+        document.getElementById("calendarTitle").textContent =
+            calendarDate.toLocaleDateString("en-IN", {
+                month: "long",
+                year: "numeric"
+            });
+
+        const grid = document.getElementById("calendarGrid");
+        grid.innerHTML = "";
+
+        const first = new Date(year, month, 1);
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        let mondayIndex = first.getDay() - 1;
+
+        if (mondayIndex < 0) mondayIndex = 6;
+
+        for (let i = 0; i < mondayIndex; i++) {
+            const empty = document.createElement("div");
+            empty.className = "calendar-day other-month";
+            grid.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const key = dateKey(date);
+            const cell = document.createElement("div");
+
+            cell.className = "calendar-day";
+
+            if (key === dateKey(new Date())) {
+                cell.classList.add("today");
+            }
+
+            if (selectedCalendarDate === key) {
+                cell.classList.add("selected");
+            }
+
+            cell.textContent = day;
+
+            const dayEvents = events[key] || [];
+
+            if (dayEvents.length) {
+                const dots = document.createElement("div");
+                dots.className = "event-dots";
+
+                dayEvents.forEach(event => {
+                    const dot = document.createElement("span");
+                    dot.className = `dot ${event.type}`;
+                    dots.appendChild(dot);
+                });
+
+                cell.appendChild(dots);
+            }
+
+            cell.onclick = () => {
+                selectedCalendarDate = key;
+                renderCalendar();
+                renderSelectedCalendarEvent(date);
+            };
+
+            grid.appendChild(cell);
+        }
+
+        if (!selectedCalendarDate) {
+            selectedCalendarDate = dateKey(new Date());
+        }
+
+        renderSelectedCalendarEvent(new Date(selectedCalendarDate));
+    }
+
+
+    function renderSelectedCalendarEvent(date) {
+        const container = document.getElementById("selectedEvent");
+        const dayEvents = events[dateKey(date)] || [];
+
+        if (!dayEvents.length) {
+            container.innerHTML = `
+                <div class="selected-event-date">
+                    ${date.toLocaleDateString("en-IN", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long"
+                    })}
+                </div>
+                <div style="color: var(--muted); font-size: 13px;">
+                    No events
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="selected-event-date">
+                ${date.toLocaleDateString("en-IN", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long"
+                })}
+            </div>
+
+            ${dayEvents.map(event => `
+                <div class="event-row">
+                    <span class="dot ${event.type}"></span>
+                    <span>${event.text}</span>
+                </div>
+            `).join("")}
+        `;
+    }
+
+
+    function changeMonth(amount) {
+        calendarDate.setMonth(calendarDate.getMonth() + amount);
+        selectedCalendarDate = null;
+        renderCalendar();
+    }
+
+
+    function goCalendarToday() {
+        calendarDate = new Date();
+        selectedCalendarDate = dateKey(new Date());
+        renderCalendar();
+    }
+
+
+    async function login() {
+        const digits = document.getElementById("rollInput").value.trim();
+        const error = document.getElementById("loginError");
+
+        error.textContent = "";
+
+        if (!/^\d{7}$/.test(digits)) {
+            error.textContent = "Enter the 7 digits after S2026.";
+            return;
+        }
+
+        const roll = "S2026" + digits;
+
+        if (API_URL.includes("PASTE_YOUR")) {
+            error.textContent = "Backend is not connected yet.";
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                API_URL + "?roll=" + encodeURIComponent(roll),
+                { cache: "no-store" }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.found) {
+                error.textContent = "Roll number not found.";
+                return;
+            }
+
+            user = data.student;
+
+            localStorage.setItem("timetableRoll", roll);
+
+            startApp();
+
+        } catch (err) {
+            console.error(err);
+            error.textContent = "Could not connect. Please try again.";
+        }
+    }
+
+
+    function startApp() {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("mainScreen").style.display = "block";
+
+        document.getElementById("greeting").textContent =
+            `${greetingText()}, ${user.name} 👋`;
+
+        document.getElementById("branchText").textContent =
+            `${user.branch} · UG1`;
+
+        document.getElementById("profileName").textContent = user.name;
+        document.getElementById("profileBranch").textContent =
+            `${user.branch} · UG1`;
+
+        document.getElementById("profileDetails").innerHTML = `
+            Roll Number · ${user.roll || localStorage.getItem("timetableRoll")}<br>
+            CP/DLD/OCW · Section ${user.cp}<br>
+            DSMA · Section ${user.dsma}
+        `;
+
+        timetable = buildStudentTimetable();
+        showToday();
+    }
+
+
+    async function autoLogin() {
+        const roll = localStorage.getItem("timetableRoll");
+
+        if (!roll) return;
+
+        document.getElementById("rollInput").value =
+            roll.replace("S2026", "");
+
+        if (API_URL.includes("PASTE_YOUR")) return;
+
+        try {
+            const response = await fetch(
+                API_URL + "?roll=" + encodeURIComponent(roll),
+                { cache: "no-store" }
+            );
+
+            const data = await response.json();
+
+            if (response.ok && data.found) {
+                user = data.student;
+                startApp();
+            }
+        } catch (err) {
+            console.log("Auto login unavailable.");
+        }
+    }
+
+
+    function openProfile() {
+        document.getElementById("profileModal").classList.add("show");
+    }
+
+
+    function closeProfile(event) {
+        if (event.target.id === "profileModal") {
+            document.getElementById("profileModal").classList.remove("show");
+        }
+    }
+
+
+    function changeRollNumber() {
+        localStorage.removeItem("timetableRoll");
+        location.reload();
+    }
+
+
+    function sendFeedback() {
+        const subject = encodeURIComponent("IIIT Timetable Feedback");
+        const body = encodeURIComponent(
+            "Hi, I have some feedback about the timetable website:\n\n"
+        );
+
+        window.location.href =
+            `mailto:?subject=${subject}&body=${body}`;
+    }
+
+
+    document.getElementById("rollInput").addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+            login();
+        }
+    });
+
+
+    autoLogin();
+</script>
+
+</body>
+</html>
